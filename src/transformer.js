@@ -1,22 +1,22 @@
 // Transform news items to GameHub format
 
-import { DEFAULT_COVER_IMAGE } from './config.js';
+import { DEFAULT_COVER_IMAGE } from './config.js'
 
 // Generate stable hash-based ID from string
 function generateStableId(str) {
-  let hash = 0;
+  let hash = 0
   for (let i = 0; i < str.length; i++) {
-    const char = str.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash; // Convert to 32-bit integer
+    const char = str.charCodeAt(i)
+    hash = (hash << 5) - hash + char
+    hash = hash & hash // Convert to 32-bit integer
   }
-  return Math.abs(hash) + 1000; // Ensure positive and start from 1000
+  return Math.abs(hash) + 1000 // Ensure positive and start from 1000
 }
 
 export function transformToGameHubList(allNewsItems, page = 1, pageSize = 4) {
-  const startIndex = (page - 1) * pageSize;
-  const endIndex = startIndex + pageSize;
-  const paginatedItems = allNewsItems.slice(startIndex, endIndex);
+  const startIndex = (page - 1) * pageSize
+  const endIndex = startIndex + pageSize
+  const paginatedItems = allNewsItems.slice(startIndex, endIndex)
 
   return {
     code: 200,
@@ -32,13 +32,13 @@ export function transformToGameHubList(allNewsItems, page = 1, pageSize = 4) {
       page_size: pageSize,
       is_vertical: 1,
       is_text_outside: 1,
-      card_list: paginatedItems.map(item => ({
+      card_list: paginatedItems.map((item) => ({
         id: item.id,
         sys_language_id: 1,
         platform: 1,
         card_type: 2,
-        jump_type: 7,  // 7 = detail view (for all items)
-        card_param: String(item.id),  // ID for all items
+        jump_type: 7, // 7 = detail view (for all items)
+        card_param: String(item.id), // ID for all items
         title: truncateText(item.title, 80),
         subtitle: item.subtitle,
         content_img: item.imageUrl || DEFAULT_COVER_IMAGE,
@@ -62,10 +62,10 @@ export function transformToGameHubList(allNewsItems, page = 1, pageSize = 4) {
         btn_text: '',
         is_display_btn: 2,
         game_channel_params: null,
-        ad: 0
-      }))
-    }
-  };
+        ad: 0,
+      })),
+    },
+  }
 }
 
 export function transformToGameHubDetail(newsItem) {
@@ -74,8 +74,8 @@ export function transformToGameHubDetail(newsItem) {
       code: 404,
       msg: 'News not found',
       time: '',
-      data: null
-    };
+      data: null,
+    }
   }
 
   return {
@@ -86,18 +86,25 @@ export function transformToGameHubDetail(newsItem) {
       cover_image: newsItem.imageUrl || DEFAULT_COVER_IMAGE,
       title: newsItem.title,
       content: formatContentHTML(newsItem),
-      time: formatDate(newsItem.timestamp)
-    }
-  };
+      time: formatDate(newsItem.timestamp),
+    },
+  }
 }
 
-export function aggregateAllNews(rssSources, githubSources, youtubeSources, rssItems, githubItems, youtubeItems) {
-  const allNews = [];
+export function aggregateAllNews(
+  rssSources,
+  githubSources,
+  youtubeSources,
+  rssItems,
+  githubItems,
+  youtubeItems,
+) {
+  const allNews = []
 
   // Process RSS items (limit to 2 per source)
   rssSources.forEach((source, sourceIndex) => {
-    const items = rssItems[sourceIndex] || [];
-    const limitedItems = items.slice(0, 2); // Only take first 2 items per source
+    const items = rssItems[sourceIndex] || []
+    const limitedItems = items.slice(0, 2) // Only take first 2 items per source
     limitedItems.forEach((item, itemIndex) => {
       allNews.push({
         id: generateStableId(item.link), // Use link hash for stable ID
@@ -109,15 +116,15 @@ export function aggregateAllNews(rssSources, githubSources, youtubeSources, rssI
         imageUrl: item.imageUrl || DEFAULT_COVER_IMAGE,
         timestamp: item.timestamp,
         source: 'rss',
-        sourceId: source.id
-      });
-    });
-  });
+        sourceId: source.id,
+      })
+    })
+  })
 
   // Process GitHub items (limit to 1 per source)
   githubSources.forEach((source, sourceIndex) => {
-    const items = githubItems[sourceIndex] || [];
-    const limitedItems = items.slice(0, 1); // Only take first item per source
+    const items = githubItems[sourceIndex] || []
+    const limitedItems = items.slice(0, 1) // Only take first item per source
     limitedItems.forEach((item, itemIndex) => {
       allNews.push({
         id: generateStableId(item.link), // Use link hash for stable ID
@@ -130,15 +137,15 @@ export function aggregateAllNews(rssSources, githubSources, youtubeSources, rssI
         timestamp: item.timestamp,
         source: 'github',
         sourceId: source.id,
-        tagName: item.tagName
-      });
-    });
-  });
+        tagName: item.tagName,
+      })
+    })
+  })
 
   // Process YouTube items (limit to 3 per channel)
   youtubeSources.forEach((source, sourceIndex) => {
-    const items = youtubeItems[sourceIndex] || [];
-    const limitedItems = items.slice(0, 3); // Only take first 3 videos per channel
+    const items = youtubeItems[sourceIndex] || []
+    const limitedItems = items.slice(0, 3) // Only take first 3 videos per channel
     limitedItems.forEach((item, itemIndex) => {
       allNews.push({
         id: generateStableId(item.link), // Use link hash for stable ID
@@ -152,49 +159,54 @@ export function aggregateAllNews(rssSources, githubSources, youtubeSources, rssI
         source: 'youtube',
         sourceId: source.id,
         videoId: item.videoId,
-        isYouTube: true
-      });
-    });
-  });
+        isYouTube: true,
+      })
+    })
+  })
 
   // Sort by timestamp (newest first)
-  allNews.sort((a, b) => b.timestamp - a.timestamp);
+  allNews.sort((a, b) => b.timestamp - a.timestamp)
 
-  return allNews;
+  return allNews
 }
 
 function formatContentHTML(newsItem) {
-  let bodyContent = '';
+  let bodyContent = ''
 
   // For YouTube videos, skip the header image and show video directly
   // For other content, add cover image at the very top if available
   if (!newsItem.isYouTube && newsItem.imageUrl) {
-    bodyContent += `<img class="header-image" src="${newsItem.imageUrl}" alt="${escapeHtml(newsItem.title)}" style="width: 100%; margin: 0 0 20px 0; display: block; border-radius: 0;">`;
+    bodyContent += `<img class="header-image" src="${newsItem.imageUrl}" alt="${escapeHtml(newsItem.title)}" style="width: 100%; margin: 0 0 20px 0; display: block; border-radius: 0;">`
   }
 
   // Add content wrapper div to scope image hiding
-  bodyContent += '<div class="content-body">';
+  bodyContent += '<div class="content-body">'
 
   // Add content
   if (newsItem.content) {
     // If content is already HTML (from RSS/GitHub/YouTube), use it directly
-    if (newsItem.content.includes('<p') || newsItem.content.includes('<h') || newsItem.content.includes('<article') || newsItem.content.includes('<iframe')) {
-      bodyContent += newsItem.content;
+    if (
+      newsItem.content.includes('<p') ||
+      newsItem.content.includes('<h') ||
+      newsItem.content.includes('<article') ||
+      newsItem.content.includes('<iframe')
+    ) {
+      bodyContent += newsItem.content
     } else {
       // Plain text content only - add basic formatting
-      const paragraphs = newsItem.content.split('\n\n');
-      paragraphs.forEach(para => {
+      const paragraphs = newsItem.content.split('\n\n')
+      paragraphs.forEach((para) => {
         if (para.trim()) {
-          bodyContent += `<p style="color: rgb(255, 255, 255); line-height: 1.6;">${escapeHtml(para.trim())}</p>`;
+          bodyContent += `<p style="color: rgb(255, 255, 255); line-height: 1.6;">${escapeHtml(para.trim())}</p>`
         }
-      });
+      })
     }
   } else {
     // Fallback if no content
-    bodyContent += `<p style="color: rgb(255, 255, 255); line-height: 1.6;">${escapeHtml(newsItem.description || 'No content available')}</p>`;
+    bodyContent += `<p style="color: rgb(255, 255, 255); line-height: 1.6;">${escapeHtml(newsItem.description || 'No content available')}</p>`
   }
 
-  bodyContent += '</div>';
+  bodyContent += '</div>'
 
   // Wrap in full HTML document with dark background and comprehensive styling
   const html = `<!DOCTYPE html>
@@ -494,39 +506,39 @@ function formatContentHTML(newsItem) {
 <body>
   ${bodyContent}
 </body>
-</html>`;
+</html>`
 
-  return html;
+  return html
 }
 
 function formatDate(timestamp) {
-  const date = new Date(timestamp);
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
+  const date = new Date(timestamp)
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
 }
 
 function truncateText(text, maxLength) {
-  if (!text || text.length <= maxLength) return text;
-  return text.substring(0, maxLength - 3) + '...';
+  if (!text || text.length <= maxLength) return text
+  return text.substring(0, maxLength - 3) + '...'
 }
 
 function escapeHtml(text) {
-  if (!text) return '';
+  if (!text) return ''
   return text
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
+    .replace(/'/g, '&#39;')
 }
 
 function extractDomain(url) {
   try {
-    const urlObj = new URL(url);
-    return urlObj.hostname.replace('www.', '');
+    const urlObj = new URL(url)
+    return urlObj.hostname.replace('www.', '')
   } catch (e) {
-    return null;
+    return null
   }
 }
