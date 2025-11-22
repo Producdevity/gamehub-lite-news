@@ -1,0 +1,24 @@
+{
+  "name": "gamehub-lite-news",
+  "version": "0.0.1",
+  "description": "News aggregator for GameHub Lite - fetches from RSS and GitHub",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "wrangler start",
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "format": "prettier --write ."
+  },
+  "keywords": ["cloudflare", "workers", "rss", "news", "gamehub"],
+  "author": "Producdevity",
+  "license": "MIT",
+  "dependencies": {
+    "@mozilla/readability": "^0.6.0",
+    "linkedom": "^0.18.12",
+    "marked": "^16.4.0"
+  },
+  "devDependencies": {
+    "prettier": "^3.6.2"
+  }
+}
