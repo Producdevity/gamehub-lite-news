@@ -38,32 +38,40 @@ A Cloudflare Worker that aggregates gaming news from RSS feeds and GitHub releas
 
 ## Setup
 
-### 1. Install Dependencies
+### Quick Start (Works Immediately)
 
 ```bash
 cd gamehub-lite-news
 npm install
-```
-
-### 2. Create KV Namespace
-
-```bash
-npx wrangler kv:namespace create NEWS_CACHE
-```
-
-Copy the namespace ID and update `wrangler.toml`:
-
-```toml
-[[kv_namespaces]]
-binding = "NEWS_CACHE"
-id = "your_namespace_id_here"
-```
-
-### 3. Deploy
-
-```bash
 npm run deploy
 ```
+
+That's it! The worker will work immediately without any configuration. It will fetch fresh news on every request.
+
+### Production Setup (With Caching)
+
+For better performance, add optional caching:
+
+1. **Create KV Namespace**:
+
+   ```bash
+   npx wrangler kv:namespace create NEWS_CACHE
+   ```
+
+2. **Enable Caching**: Update `wrangler.toml`:
+
+   ```toml
+   [[kv_namespaces]]
+   binding = "NEWS_CACHE"
+   id = "your_namespace_id_here"
+   ```
+
+3. **Deploy with Caching**:
+   ```bash
+   npm run deploy
+   ```
+
+**Secrets and Variables**: No secrets required. KV namespace is optional (but recommended) and the worker gracefully degrades without it.
 
 ## API Endpoints
 
