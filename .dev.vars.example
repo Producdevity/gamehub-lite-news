@@ -1,0 +1,3 @@
+# Cloudflare Workers environment variables
+# Copy this file to .dev.vars and fill in your actual KV namespace ID
+NEWS_CACHE_ID=your_kv_namespace_id_here
