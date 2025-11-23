@@ -1,4 +1,5 @@
 // Cache management using KV storage
+// Gracefully degrades when KV is not available
 
 import { CACHE_TTL } from './config.js'
 
@@ -8,6 +9,12 @@ const CACHE_KEYS = {
 }
 
 export async function getCachedNewsList(env) {
+  // Check if KV is available
+  if (!env.NEWS_CACHE) {
+    console.log('KV not available - skipping cache')
+    return null
+  }
+
   try {
     const cached = await env.NEWS_CACHE.get(CACHE_KEYS.NEWS_LIST, 'json')
     return cached
@@ -18,6 +25,12 @@ export async function getCachedNewsList(env) {
 }
 
 export async function setCachedNewsList(env, newsList) {
+  // Check if KV is available
+  if (!env.NEWS_CACHE) {
+    console.log('KV not available - skipping cache write')
+    return
+  }
+
   try {
     await env.NEWS_CACHE.put(CACHE_KEYS.NEWS_LIST, JSON.stringify(newsList), {
       expirationTtl: CACHE_TTL,
@@ -28,6 +41,12 @@ export async function setCachedNewsList(env, newsList) {
 }
 
 export async function getCachedNewsDetail(env, id) {
+  // Check if KV is available
+  if (!env.NEWS_CACHE) {
+    console.log('KV not available - skipping detail cache')
+    return null
+  }
+
   try {
     const cached = await env.NEWS_CACHE.get(
       `${CACHE_KEYS.NEWS_DETAIL_PREFIX}${id}`,
@@ -41,6 +60,12 @@ export async function getCachedNewsDetail(env, id) {
 }
 
 export async function setCachedNewsDetail(env, id, newsDetail) {
+  // Check if KV is available
+  if (!env.NEWS_CACHE) {
+    console.log('KV not available - skipping detail cache write')
+    return
+  }
+
   try {
     await env.NEWS_CACHE.put(
       `${CACHE_KEYS.NEWS_DETAIL_PREFIX}${id}`,
@@ -53,6 +78,12 @@ export async function setCachedNewsDetail(env, id, newsDetail) {
 }
 
 export async function invalidateCache(env) {
+  // Check if KV is available
+  if (!env.NEWS_CACHE) {
+    console.log('KV not available - no cache to invalidate')
+    return { success: true, message: 'No cache to invalidate' }
+  }
+
   try {
     // Delete the main list cache
     await env.NEWS_CACHE.delete(CACHE_KEYS.NEWS_LIST)
